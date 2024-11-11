@@ -7,7 +7,7 @@ const QueueError = error{
     Empty,
 };
 
-fn StaticQueue(comptime T: type) type {
+pub fn StaticQueue(comptime T: type) type {
     return struct {
         size: usize,
         next: usize,
@@ -15,15 +15,15 @@ fn StaticQueue(comptime T: type) type {
         items: []T,
         allocator: Allocator,
 
-        fn isFull(self: StaticQueue(T)) bool {
+        pub fn isFull(self: StaticQueue(T)) bool {
             return self.size >= self.capacity;
         }
 
-        fn isEmpty(self: StaticQueue(T)) bool {
+        pub fn isEmpty(self: StaticQueue(T)) bool {
             return self.size == 0;
         }
 
-        fn init(allocator: Allocator, capacity: usize) !StaticQueue(T) {
+        pub fn init(allocator: Allocator, capacity: usize) !StaticQueue(T) {
             return .{
                 .allocator = allocator,
                 .size = 0,
@@ -33,11 +33,11 @@ fn StaticQueue(comptime T: type) type {
             };
         }
 
-        fn deinit(self: StaticQueue(T)) void {
+        pub fn deinit(self: StaticQueue(T)) void {
             self.allocator.free(self.items);
         }
 
-        fn push(self: *StaticQueue(T), value: T) !void {
+        pub fn push(self: *StaticQueue(T), value: T) !void {
             if (self.isFull()) {
                 return QueueError.NoCapacity;
             }
@@ -51,7 +51,7 @@ fn StaticQueue(comptime T: type) type {
             self.size += 1;
         }
 
-        fn pop(self: *StaticQueue(T)) !T {
+        pub fn pop(self: *StaticQueue(T)) !T {
             if(self.size == 0) {
                 return QueueError.Empty;
             }
