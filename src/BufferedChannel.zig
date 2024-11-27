@@ -29,6 +29,13 @@ fn BufferedChannel(comptime T: type) type {
             self.queue.deinit();
         }
 
+        fn isClosed(self: *BufferedChannel(T)) bool {
+            self.sharedMutex.lock();
+            defer self.sharedMutex.unlock();
+
+            return self.closed;
+        }
+
         fn send(self: *BufferedChannel(T), data: T) !void {
             self.sharedMutex.lock();
             defer self.sharedMutex.unlock();
@@ -135,4 +142,55 @@ test "sends and receives a value" {
     const val = try channel.receive();
 
     try Testing.expect(val == 125);
+}
+
+test "sends and receives multiple values" {
+    var channel = try BufferedChannel(u8).init(Testing.allocator, 3);
+    defer channel.deinit();
+
+    try channel.send(1);
+    try channel.send(2);
+    try channel.send(3);
+
+    const val1 = try channel.receive();
+    const val2 = try channel.receive();
+    const val3 = try channel.receive();
+
+    try Testing.expect(val1 == 1);
+    try Testing.expect(val2 == 2);
+    try Testing.expect(val3 == 3);
+}
+
+test "sends and receives a value in another thread" {
+    var channel = try BufferedChannel(u8).init(Testing.allocator, 1);
+    defer channel.deinit();
+
+    const consume = struct {
+        fn f(syncChannel: *BufferedChannel(u8)) !void {
+            const received1 = try syncChannel.receive();
+            const received2 = try syncChannel.receive();
+            const received3 = try syncChannel.receive();
+
+            try Testing.expect(received1 == 4);
+            try Testing.expect(received2 == 5);
+            try Testing.expect(received3 == 6);
+        }
+    }.f;
+
+    const thr = try std.Thread.spawn(.{}, consume, .{&channel});
+
+    try channel.send(4);
+    try channel.send(5);
+    try channel.send(6);
+
+    thr.join();
+}
+
+test "check if close" {
+    var channel = try BufferedChannel(u8).init(Testing.allocator, 1);
+    defer channel.deinit();
+
+    channel.close();
+
+    try Testing.expect(channel.isClosed() == true);
 }
