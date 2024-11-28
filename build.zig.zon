@@ -6,6 +6,8 @@
         "",
         "build.zig",
         "build.zig.zon",
-        "src/zchannels"
+        "src/zchannels",
+        "LICENSE",
+        "README.md",
     },
 }
