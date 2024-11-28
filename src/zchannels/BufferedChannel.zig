@@ -5,11 +5,11 @@ const StaticQueue = @import("StaticQueue.zig").StaticQueue;
 const Mutex = std.Thread.Mutex;
 const Condition = std.Thread.Condition;
 
-const BufferedChanelError = error{
+pub const BufferedChanelError = error{
     Closed,
 };
 
-fn BufferedChannel(comptime T: type) type {
+pub fn BufferedChannel(comptime T: type) type {
     return struct {
         queue: StaticQueue(T),
         sharedMutex: Mutex = .{},
@@ -19,24 +19,24 @@ fn BufferedChannel(comptime T: type) type {
         numWaitingWrite: usize = 0,
         numWaitingRead: usize = 0,
 
-        fn init(allocator: Allocator, capacity: usize) !BufferedChannel(T) {
+        pub fn init(allocator: Allocator, capacity: usize) !BufferedChannel(T) {
             return .{
                 .queue = try StaticQueue(T).init(allocator, capacity),
             };
         }
 
-        fn deinit(self: BufferedChannel(T)) void {
+        pub fn deinit(self: BufferedChannel(T)) void {
             self.queue.deinit();
         }
 
-        fn isClosed(self: *BufferedChannel(T)) bool {
+        pub fn isClosed(self: *BufferedChannel(T)) bool {
             self.sharedMutex.lock();
             defer self.sharedMutex.unlock();
 
             return self.closed;
         }
 
-        fn send(self: *BufferedChannel(T), data: T) !void {
+        pub fn send(self: *BufferedChannel(T), data: T) !void {
             self.sharedMutex.lock();
             defer self.sharedMutex.unlock();
 
@@ -59,7 +59,7 @@ fn BufferedChannel(comptime T: type) type {
             return result;
         }
 
-        fn receive(self: *BufferedChannel(T)) !T {
+        pub fn receive(self: *BufferedChannel(T)) !T {
             self.sharedMutex.lock();
             defer self.sharedMutex.unlock();
 
@@ -82,7 +82,7 @@ fn BufferedChannel(comptime T: type) type {
             return result;
         }
 
-        fn close(self: *BufferedChannel(T)) void {
+        pub fn close(self: *BufferedChannel(T)) void {
             self.sharedMutex.lock();
             defer self.sharedMutex.unlock();
 

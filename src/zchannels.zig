@@ -1,10 +1,7 @@
 const std = @import("std");
-const testing = std.testing;
 
-export fn add(a: i32, b: i32) i32 {
-    return a + b;
-}
+pub const BufferedChannel = @import("zchannels/BufferedChannel.zig").BufferedChannel;
+pub const BufferedChanelError = @import("zchannels/BufferedChannel.zig").BufferedChanelError;
+pub const SyncChannel = @import("zchannels/SyncChannel.zig").SyncChannel;
+pub const SyncChannelError = @import("zchannels/SyncChannel.zig").SyncChannelError;
 
-test "basic add functionality" {
-    try testing.expect(add(3, 7) == 10);
-}

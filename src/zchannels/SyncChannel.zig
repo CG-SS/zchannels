@@ -4,11 +4,11 @@ const Condition = std.Thread.Condition;
 const Allocator = std.mem.Allocator;
 const Testing = std.testing;
 
-const SyncChannelError = error{
+pub const SyncChannelError = error{
     Closed,
 };
 
-fn SyncChannel(comptime T: type) type {
+pub fn SyncChannel(comptime T: type) type {
     return struct {
         writeMutex: Mutex = .{},
         readMutex: Mutex = .{},
@@ -20,18 +20,18 @@ fn SyncChannel(comptime T: type) type {
         numWaitingRead: usize = 0,
         data: ?T = null,
 
-        fn init() SyncChannel(T) {
+        pub fn init() SyncChannel(T) {
             return .{};
         }
 
-        fn isClosed(self: *SyncChannel(T)) bool {
+        pub fn isClosed(self: *SyncChannel(T)) bool {
             self.sharedMutex.lock();
             defer self.sharedMutex.unlock();
 
             return self.closed;
         }
 
-        fn send(self: *SyncChannel(T), data: T) !void {
+        pub fn send(self: *SyncChannel(T), data: T) !void {
             self.sharedMutex.lock();
             defer self.sharedMutex.unlock();
 
@@ -52,7 +52,7 @@ fn SyncChannel(comptime T: type) type {
             self.writeCondition.wait(&self.sharedMutex);
         }
 
-        fn receive(self: *SyncChannel(T)) !T {
+        pub fn receive(self: *SyncChannel(T)) !T {
             self.sharedMutex.lock();
             defer self.sharedMutex.unlock();
 
@@ -77,7 +77,7 @@ fn SyncChannel(comptime T: type) type {
             return data.?;
         }
 
-        fn close(self: *SyncChannel(T)) void {
+        pub fn close(self: *SyncChannel(T)) void {
             self.sharedMutex.lock();
             defer self.sharedMutex.unlock();
 
